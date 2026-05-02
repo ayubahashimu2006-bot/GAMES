@@ -2,532 +2,225 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Billions Arcade Hub</title>
+<title>Billions Arcade Hub MAX</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: radial-gradient(circle, #0f2027, #000);
-    color: white;
+body{
+margin:0;
+font-family:Arial;
+background:radial-gradient(circle,#0f2027,#000);
+color:white;
 }
 
 /* HEADER */
-header {
-    text-align: center;
-    padding: 20px;
-    font-size: 26px;
-    font-weight: bold;
-    color: #00ffd5;
+header{
+padding:15px;
+text-align:center;
+font-size:24px;
+color:#00ffd5;
+font-weight:bold;
 }
 
 /* MENU */
-#menu {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
-    padding: 15px;
+#menu{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:10px;
+padding:10px;
 }
 
-.game-btn {
-    padding: 15px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid #00ffd5;
-    border-radius: 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: 0.3s;
+.btn{
+background:rgba(255,255,255,0.08);
+border:1px solid #00ffd5;
+padding:12px;
+border-radius:10px;
+cursor:pointer;
+transition:0.3s;
+text-align:center;
 }
 
-.game-btn:hover {
-    background: #00ffd5;
-    color: black;
-    transform: scale(1.05);
+.btn:hover{
+background:#00ffd5;
+color:black;
+transform:scale(1.05);
 }
 
 /* GAME AREA */
-#gameArea {
-    margin: 20px;
-    padding: 20px;
-    min-height: 400px;
-    border: 2px solid #00ffd5;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.05);
+#game{
+margin:15px;
+padding:20px;
+min-height:420px;
+border:2px solid #00ffd5;
+border-radius:12px;
+background:rgba(255,255,255,0.05);
+position:relative;
+overflow:hidden;
 }
 
-button {
-    padding: 10px;
-    margin: 5px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+.target{
+width:45px;
+height:45px;
+background:red;
+border-radius:50%;
+position:absolute;
+cursor:pointer;
+box-shadow:0 0 10px red;
 }
 
-/* TARGET */
-.target {
-    width: 40px;
-    height: 40px;
-    background: red;
-    border-radius: 50%;
-    position: absolute;
+input,button{
+padding:10px;
+margin:5px;
+border-radius:6px;
+border:none;
 }
 </style>
 </head>
 
 <body>
 
-<header>🎮 BILLIONS ARCADE HUB (20 GAMES)</header>
+<header>🎮 BILLIONS ARCADE HUB — MAX LEVEL</header>
 
 <div id="menu"></div>
 
-<div id="gameArea">
-    <h3>Welcome 👑 Select a game above</h3>
+<div id="game">
+<h3>Select a Game 👆</h3>
 </div>
 
 <script>
-const gameArea = document.getElementById("gameArea");
+const menu=document.getElementById("menu");
+const game=document.getElementById("game");
 
-/* =========================
-   GAME LIST (20 GAMES)
-========================= */
-const games = [
-"Click Target",
-"Reaction Test",
-"Guess Number",
-"Rock Paper Scissors",
-"Tic Tac Toe",
-"Dice Roll",
-"Coin Flip",
-"Math Quiz",
-"Typing Test",
-"Color Match",
-"Memory Game",
-"Snake Lite",
-"Fast Math",
-"Quiz Game",
-"Whack Mole",
-"Jump Game",
-"Spin Wheel",
-"Word Scramble",
-"Speed Click",
-"Mini Puzzle"
+/* ======================
+   GAME LIST
+====================== */
+const games=[
+"🎯 Click Rush",
+"⚡ Reaction Speed",
+"🔢 Guess Number",
+"✊ Rock Paper Scissors",
+🎲 Dice Battle",
+"🪙 Coin Flip",
+"➕ Math Challenge",
+"⌨️ Typing Speed",
+"🎨 Color Match",
+"🧠 Memory Flip"
 ];
-
-/* MENU GENERATION */
-const menu = document.getElementById("menu");
-games.forEach((g, i) => {
-    let btn = document.createElement("div");
-    btn.className = "game-btn";
-    btn.innerText = (i+1) + ". " + g;
-    btn.onclick = () => loadGame(i);
-    menu.appendChild(btn);
-});
-
-/* RESET */
-function resetGame() {
-    gameArea.innerHTML = "";
-}
-
-/* =========================
-   GAME ENGINE
-========================= */
-function loadGame(id) {
-    resetGame();
-
-    switch(id) {
-
-    /* 1 CLICK TARGET */
-    case 0:
-        let score = 0;
-        gameArea.innerHTML = `<h3>Click Targets: Score = <span id="s">0</span></h3>`;
-        spawn();
-        function spawn(){
-            let t = document.createElement("div");
-            t.className="target";
-            t.style.top=Math.random()*300+"px";
-            t.style.left=Math.random()*300+"px";
-            t.onclick=()=>{score++;document.getElementById("s").innerText=score;t.remove();spawn();}
-            gameArea.appendChild(t);
-        }
-        break;
-
-    /* 2 REACTION */
-    case 1:
-        gameArea.innerHTML = `<h3>Wait for GREEN...</h3>`;
-        setTimeout(()=>{
-            gameArea.innerHTML += `<button style="background:green;width:100px;height:100px" onclick="alert('Fast!')">CLICK</button>`;
-        },2000);
-        break;
-
-    /* 3 GUESS NUMBER */
-    case 2:
-        let num = Math.floor(Math.random()*10);
-        gameArea.innerHTML = `<h3>Guess number 0-9</h3><input id='g'><button onclick="check()">Try</button>`;
-        window.check=()=>alert(document.getElementById('g').value==num?"Correct":"Wrong "+num);
-        break;
-
-    /* 4 ROCK PAPER */
-    case 3:
-        gameArea.innerHTML = `
-        <button onclick="play('rock')">Rock</button>
-        <button onclick="play('paper')">Paper</button>
-        <button onclick="play('scissors')">Scissors</button>`;
-        window.play=(p)=>{
-            let ai=['rock','paper','scissors'][Math.floor(Math.random()*3)];
-            alert("AI: "+ai);
-        }
-        break;
-
-    /* 5 TIC TAC TOE (simple) */
-    case 4:
-        gameArea.innerHTML="<h3>Tic Tac Toe (Simple)</h3><p>Coming Upgrade Version</p>";
-        break;
-
-    /* 6 DICE */
-    case 5:
-        gameArea.innerHTML=`<button onclick="alert(Math.floor(Math.random()*6)+1)">Roll Dice</button>`;
-        break;
-
-    /* 7 COIN */
-    case 6:
-        gameArea.innerHTML=`<button onclick="alert(Math.random()>0.5?'Head':'Tail')">Flip Coin</button>`;
-        break;
-
-    /* 8 MATH QUIZ */
-    case 7:
-        let a=Math.floor(Math.random()*10);
-        let b=Math.floor(Math.random()*10);
-        gameArea.innerHTML=`<h3>${a}+${b} = ?</h3><input id='ans'><button onclick="alert(document.getElementById('ans').value==a+b?'Correct':'Wrong')">Check</button>`;
-        break;
-
-    /* 9 TYPING */
-    case 8:
-        gameArea.innerHTML=`<h3>Type: BILLIONS</h3><input id='t'><button onclick="alert(document.getElementById('t').value=='BILLIONS'?'Good':'Wrong')">Check</button>`;
-        break;
-
-    /* 10 COLOR MATCH */
-    case 9:
-        gameArea.innerHTML=`<button style="background:red">RED</button><button style="background:blue">BLUE</button>`;
-        break;
-
-    /* 11 MEMORY */
-    case 10:
-        gameArea.innerHTML="<h3>Memory Game Coming Soon</h3>";
-        break;
-
-    /* 12 SNAKE */
-    case 11:
-        gameArea.innerHTML="<h3>Snake Lite Coming Soon</h3>";
-        break;
-
-    /* 13 FAST MATH */
-    case 12:
-        gameArea.innerHTML="<h3>Fast Math Mode</h3>";
-        break;
-
-    /* 14 QUIZ */
-    case 13:
-        gameArea.innerHTML="<h3>Quiz Game Mode</h3>";
-        break;
-
-    /* 15 WHACK MOLE */
-    case 14:
-        gameArea.innerHTML="<h3>Whack Mole Coming Soon</h3>";
-        break;
-
-    /* 16 JUMP GAME */
-    case 15:
-        gameArea.innerHTML="<h3>Jump Game Coming Soon</h3>";
-        break;
-
-    /* 17 SPIN WHEEL */
-    case 16:
-        gameArea.innerHTML="<button onclick='alert(\"You Win!\")'>Spin</button>";
-        break;
-
-    /* 18 WORD SCRAMBLE */
-    case 17:
-        gameArea.innerHTML="<h3>Word Scramble Coming Soon</h3>";
-        break;
-
-    /* 19 SPEED CLICK */
-    case 18:
-        gameArea.innerHTML="<button onclick='alert(\"Clicks counted!\")'>Click Fast</button>";
-        break;
-
-    /* 20 PUZZLE */
-    case 19:
-        gameArea.innerHTML="<h3>Mini Puzzle Coming Soon</h3>";
-        break;
-    }
-}
-</script>
-
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Billions Arcade Hub</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: radial-gradient(circle, #0f2027, #000);
-    color: white;
-}
-
-/* HEADER */
-header {
-    text-align: center;
-    padding: 20px;
-    font-size: 26px;
-    font-weight: bold;
-    color: #00ffd5;
-}
 
 /* MENU */
-#menu {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
-    padding: 15px;
-}
-
-.game-btn {
-    padding: 15px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid #00ffd5;
-    border-radius: 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: 0.3s;
-}
-
-.game-btn:hover {
-    background: #00ffd5;
-    color: black;
-    transform: scale(1.05);
-}
-
-/* GAME AREA */
-#gameArea {
-    margin: 20px;
-    padding: 20px;
-    min-height: 400px;
-    border: 2px solid #00ffd5;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.05);
-}
-
-button {
-    padding: 10px;
-    margin: 5px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-/* TARGET */
-.target {
-    width: 40px;
-    height: 40px;
-    background: red;
-    border-radius: 50%;
-    position: absolute;
-}
-</style>
-</head>
-
-<body>
-
-<header>🎮 BILLIONS ARCADE HUB (20 GAMES)</header>
-
-<div id="menu"></div>
-
-<div id="gameArea">
-    <h3>Welcome 👑 Select a game above</h3>
-</div>
-
-<script>
-const gameArea = document.getElementById("gameArea");
-
-/* =========================
-   GAME LIST (20 GAMES)
-========================= */
-const games = [
-"Click Target",
-"Reaction Test",
-"Guess Number",
-"Rock Paper Scissors",
-"Tic Tac Toe",
-"Dice Roll",
-"Coin Flip",
-"Math Quiz",
-"Typing Test",
-"Color Match",
-"Memory Game",
-"Snake Lite",
-"Fast Math",
-"Quiz Game",
-"Whack Mole",
-"Jump Game",
-"Spin Wheel",
-"Word Scramble",
-"Speed Click",
-"Mini Puzzle"
-];
-
-/* MENU GENERATION */
-const menu = document.getElementById("menu");
-games.forEach((g, i) => {
-    let btn = document.createElement("div");
-    btn.className = "game-btn";
-    btn.innerText = (i+1) + ". " + g;
-    btn.onclick = () => loadGame(i);
-    menu.appendChild(btn);
+games.forEach((g,i)=>{
+let b=document.createElement("div");
+b.className="btn";
+b.innerText=g;
+b.onclick=()=>loadGame(i);
+menu.appendChild(b);
 });
 
 /* RESET */
-function resetGame() {
-    gameArea.innerHTML = "";
+function reset(){game.innerHTML="";}
+
+/* HIGH SCORE */
+function saveScore(name,score){
+let old=localStorage.getItem(name)||0;
+if(score>old)localStorage.setItem(name,score);
 }
 
-/* =========================
+/* ======================
    GAME ENGINE
-========================= */
-function loadGame(id) {
-    resetGame();
+====================== */
+function loadGame(id){
+reset();
 
-    switch(id) {
+/* 1 CLICK RUSH */
+if(id==0){
+let score=0;
+game.innerHTML="<h3>Click Rush: "+score+"</h3>";
+spawn();
+function spawn(){
+let t=document.createElement("div");
+t.className="target";
+t.style.top=Math.random()*300+"px";
+t.style.left=Math.random()*300+"px";
+t.onclick=()=>{
+score++;
+game.querySelector("h3").innerText="Click Rush: "+score;
+t.remove();
+spawn();
+}
+game.appendChild(t);
+}
+}
 
-    /* 1 CLICK TARGET */
-    case 0:
-        let score = 0;
-        gameArea.innerHTML = `<h3>Click Targets: Score = <span id="s">0</span></h3>`;
-        spawn();
-        function spawn(){
-            let t = document.createElement("div");
-            t.className="target";
-            t.style.top=Math.random()*300+"px";
-            t.style.left=Math.random()*300+"px";
-            t.onclick=()=>{score++;document.getElementById("s").innerText=score;t.remove();spawn();}
-            gameArea.appendChild(t);
-        }
-        break;
+/* 2 REACTION */
+if(id==1){
+game.innerHTML="<h3>Wait GREEN...</h3>";
+setTimeout(()=>{
+game.innerHTML+=`<button style="background:green;width:120px;height:120px" onclick="alert('FAST!')">CLICK</button>`;
+},2000);
+}
 
-    /* 2 REACTION */
-    case 1:
-        gameArea.innerHTML = `<h3>Wait for GREEN...</h3>`;
-        setTimeout(()=>{
-            gameArea.innerHTML += `<button style="background:green;width:100px;height:100px" onclick="alert('Fast!')">CLICK</button>`;
-        },2000);
-        break;
+/* 3 GUESS */
+if(id==2){
+let num=Math.floor(Math.random()*10);
+game.innerHTML="<h3>Guess 0-9</h3><input id='g'><button onclick='check()'>Try</button>";
+window.check=()=>{
+alert(document.getElementById("g").value==num?"Correct":"Wrong answer: "+num);
+}
+}
 
-    /* 3 GUESS NUMBER */
-    case 2:
-        let num = Math.floor(Math.random()*10);
-        gameArea.innerHTML = `<h3>Guess number 0-9</h3><input id='g'><button onclick="check()">Try</button>`;
-        window.check=()=>alert(document.getElementById('g').value==num?"Correct":"Wrong "+num);
-        break;
+/* 4 RPS */
+if(id==3){
+game.innerHTML=`
+<button onclick="play('rock')">Rock</button>
+<button onclick="play('paper')">Paper</button>
+<button onclick="play('scissors')">Scissors</button>`;
+window.play=(p)=>{
+let ai=["rock","paper","scissors"][Math.floor(Math.random()*3)];
+alert("AI: "+ai);
+}
+}
 
-    /* 4 ROCK PAPER */
-    case 3:
-        gameArea.innerHTML = `
-        <button onclick="play('rock')">Rock</button>
-        <button onclick="play('paper')">Paper</button>
-        <button onclick="play('scissors')">Scissors</button>`;
-        window.play=(p)=>{
-            let ai=['rock','paper','scissors'][Math.floor(Math.random()*3)];
-            alert("AI: "+ai);
-        }
-        break;
+/* 5 DICE */
+if(id==4){
+game.innerHTML="<button onclick='alert(Math.floor(Math.random()*6)+1)'>Roll Dice</button>";
+}
 
-    /* 5 TIC TAC TOE (simple) */
-    case 4:
-        gameArea.innerHTML="<h3>Tic Tac Toe (Simple)</h3><p>Coming Upgrade Version</p>";
-        break;
+/* 6 COIN */
+if(id==5){
+game.innerHTML="<button onclick='alert(Math.random()>0.5?\"HEAD\":\"TAIL\")'>Flip</button>";
+}
 
-    /* 6 DICE */
-    case 5:
-        gameArea.innerHTML=`<button onclick="alert(Math.floor(Math.random()*6)+1)">Roll Dice</button>`;
-        break;
+/* 7 MATH */
+if(id==6){
+let a=Math.floor(Math.random()*20);
+let b=Math.floor(Math.random()*20);
+game.innerHTML=`<h3>${a}+${b}=?</h3><input id='a'><button onclick='ans()'>Check</button>`;
+window.ans=()=>alert(document.getElementById("a").value==a+b?"Correct":"Wrong");
+}
 
-    /* 7 COIN */
-    case 6:
-        gameArea.innerHTML=`<button onclick="alert(Math.random()>0.5?'Head':'Tail')">Flip Coin</button>`;
-        break;
+/* 8 TYPING */
+if(id==7){
+game.innerHTML="<h3>Type: BILLIONS LEGEND</h3><input id='t'><button onclick='check()'>Check</button>";
+window.check=()=>alert(document.getElementById("t").value=="BILLIONS LEGEND"?"Good":"Wrong");
+}
 
-    /* 8 MATH QUIZ */
-    case 7:
-        let a=Math.floor(Math.random()*10);
-        let b=Math.floor(Math.random()*10);
-        gameArea.innerHTML=`<h3>${a}+${b} = ?</h3><input id='ans'><button onclick="alert(document.getElementById('ans').value==a+b?'Correct':'Wrong')">Check</button>`;
-        break;
+/* 9 COLOR */
+if(id==8){
+let colors=["red","blue","green","yellow"];
+let pick=colors[Math.floor(Math.random()*colors.length)];
+game.innerHTML=`<h3>Click: ${pick}</h3>`;
+colors.forEach(c=>{
+let b=document.createElement("button");
+b.innerText=c;
+b.onclick=()=>alert(c==pick?"Correct":"Wrong");
+game.appendChild(b);
+});
+}
 
-    /* 9 TYPING */
-    case 8:
-        gameArea.innerHTML=`<h3>Type: BILLIONS</h3><input id='t'><button onclick="alert(document.getElementById('t').value=='BILLIONS'?'Good':'Wrong')">Check</button>`;
-        break;
-
-    /* 10 COLOR MATCH */
-    case 9:
-        gameArea.innerHTML=`<button style="background:red">RED</button><button style="background:blue">BLUE</button>`;
-        break;
-
-    /* 11 MEMORY */
-    case 10:
-        gameArea.innerHTML="<h3>Memory Game Coming Soon</h3>";
-        break;
-
-    /* 12 SNAKE */
-    case 11:
-        gameArea.innerHTML="<h3>Snake Lite Coming Soon</h3>";
-        break;
-
-    /* 13 FAST MATH */
-    case 12:
-        gameArea.innerHTML="<h3>Fast Math Mode</h3>";
-        break;
-
-    /* 14 QUIZ */
-    case 13:
-        gameArea.innerHTML="<h3>Quiz Game Mode</h3>";
-        break;
-
-    /* 15 WHACK MOLE */
-    case 14:
-        gameArea.innerHTML="<h3>Whack Mole Coming Soon</h3>";
-        break;
-
-    /* 16 JUMP GAME */
-    case 15:
-        gameArea.innerHTML="<h3>Jump Game Coming Soon</h3>";
-        break;
-
-    /* 17 SPIN WHEEL */
-    case 16:
-        gameArea.innerHTML="<button onclick='alert(\"You Win!\")'>Spin</button>";
-        break;
-
-    /* 18 WORD SCRAMBLE */
-    case 17:
-        gameArea.innerHTML="<h3>Word Scramble Coming Soon</h3>";
-        break;
-
-    /* 19 SPEED CLICK */
-    case 18:
-        gameArea.innerHTML="<button onclick='alert(\"Clicks counted!\")'>Click Fast</button>";
-        break;
-
-    /* 20 PUZZLE */
-    case 19:
-        gameArea.innerHTML="<h3>Mini Puzzle Coming Soon</h3>";
-        break;
-    }
+/* 10 MEMORY */
+if(id==9){
+game.innerHTML="<h3>Memory Game</h3><p>Max Version Coming Next Upgrade</p>";
+}
 }
 </script>
 
