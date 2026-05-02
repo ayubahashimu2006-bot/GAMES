@@ -2,10 +2,11 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>3D Runner Game</title>
+<title>3D Open World Sandbox</title>
+
 <style>
 body { margin:0; overflow:hidden; background:black; }
-#ui {
+#ui{
 position:absolute;
 top:10px;
 left:10px;
@@ -13,133 +14,163 @@ color:white;
 font-family:Arial;
 z-index:10;
 }
-button{
-padding:10px;
-margin:5px;
-}
 </style>
 </head>
 
 <body>
 
 <div id="ui">
-<h3>👑 3D Runner Game</h3>
-<button onclick="startGame()">Start</button>
-<p>Controls: ← → Arrow keys</p>
+<h3>🌍 3D OPEN WORLD SANDBOX</h3>
+<p>Move: WASD | Jump: SPACE</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
 <script>
 
-let scene, camera, renderer;
-let player;
-let obstacles = [];
-let speed = 0.2;
-let gameRunning = false;
+/* =========================
+   BASIC SETUP
+========================= */
+let scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x87ceeb, 10, 200);
 
-init();
-
-function init(){
-
-/* SCENE */
-scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
-
-/* CAMERA */
-camera = new THREE.PerspectiveCamera(
+let camera = new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
 1000
 );
-camera.position.z = 5;
 
-/* RENDERER */
-renderer = new THREE.WebGLRenderer();
+let renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 /* LIGHT */
-const light = new THREE.PointLight(0xffffff,1);
-light.position.set(5,5,5);
-scene.add(light);
+let sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(10,20,10);
+scene.add(sun);
 
-/* PLAYER (BALL) */
-const geometry = new THREE.SphereGeometry(0.5,32,32);
-const material = new THREE.MeshStandardMaterial({color:0x00ffd5});
-player = new THREE.Mesh(geometry,material);
+let ambient = new THREE.AmbientLight(0x404040);
+scene.add(ambient);
+
+/* =========================
+   GROUND (OPEN WORLD FLOOR)
+========================= */
+let groundGeo = new THREE.PlaneGeometry(500,500);
+let groundMat = new THREE.MeshStandardMaterial({color:0x228B22});
+let ground = new THREE.Mesh(groundGeo,groundMat);
+ground.rotation.x = -Math.PI/2;
+scene.add(ground);
+
+/* =========================
+   PLAYER
+========================= */
+let playerGeo = new THREE.BoxGeometry(1,2,1);
+let playerMat = new THREE.MeshStandardMaterial({color:0x00ffd5});
+let player = new THREE.Mesh(playerGeo,playerMat);
+player.position.y = 1;
 scene.add(player);
 
-/* FLOOR */
-const floorGeo = new THREE.BoxGeometry(10,0.1,50);
-const floorMat = new THREE.MeshStandardMaterial({color:0x222222});
-const floor = new THREE.Mesh(floorGeo,floorMat);
-floor.position.y = -1;
-scene.add(floor);
+/* CAMERA POSITION */
+camera.position.set(0,5,10);
 
-/* CONTROLS */
-document.addEventListener("keydown",move);
+/* =========================
+   TREES (WORLD GENERATION)
+========================= */
+function createTree(x,z){
+let trunk = new THREE.Mesh(
+new THREE.CylinderGeometry(0.3,0.3,2),
+new THREE.MeshStandardMaterial({color:0x8B4513})
+);
 
-/* START LOOP */
-animate();
+let leaves = new THREE.Mesh(
+new THREE.SphereGeometry(1.2),
+new THREE.MeshStandardMaterial({color:0x00aa00})
+);
+
+let tree = new THREE.Group();
+trunk.position.y = 1;
+leaves.position.y = 3;
+
+tree.add(trunk);
+tree.add(leaves);
+
+tree.position.set(x,0,z);
+scene.add(tree);
 }
 
-function move(e){
-if(!gameRunning) return;
-
-if(e.key==="ArrowLeft"){
-player.position.x -= 0.3;
-}
-if(e.key==="ArrowRight"){
-player.position.x += 0.3;
-}
+/* generate world */
+for(let i=0;i<50;i++){
+let x = (Math.random()-0.5)*200;
+let z = (Math.random()-0.5)*200;
+createTree(x,z);
 }
 
-function createObstacle(){
-const geo = new THREE.BoxGeometry(1,1,1);
-const mat = new THREE.MeshStandardMaterial({color:0xff0000});
-const box = new THREE.Mesh(geo,mat);
+/* =========================
+   CONTROLS
+========================= */
+let keys = {};
 
-box.position.z = -20;
-box.position.x = (Math.random()*4)-2;
-box.position.y = 0;
+document.addEventListener("keydown",(e)=>{
+keys[e.key] = true;
+});
 
-scene.add(box);
-obstacles.push(box);
-}
+document.addEventListener("keyup",(e)=>{
+keys[e.key] = false;
+});
 
-function startGame(){
-gameRunning = true;
-setInterval(createObstacle,1500);
-}
+/* movement */
+let velocityY = 0;
+let gravity = 0.01;
+let canJump = false;
 
+/* =========================
+   GAME LOOP
+========================= */
 function animate(){
 
 requestAnimationFrame(animate);
 
-if(gameRunning){
+/* MOVEMENT */
+let speed = 0.2;
 
-/* move camera forward */
-player.position.z -= speed;
+if(keys["w"]) player.position.z -= speed;
+if(keys["s"]) player.position.z += speed;
+if(keys["a"]) player.position.x -= speed;
+if(keys["d"]) player.position.x += speed;
 
-/* move obstacles */
-obstacles.forEach(o=>{
-o.position.z += speed;
-
-if(o.position.distanceTo(player.position)<1){
-alert("💀 Game Over!");
-location.reload();
-}
-});
-
+/* JUMP */
+if(keys[" "] && canJump){
+velocityY = 0.2;
+canJump = false;
 }
 
-camera.position.z = player.position.z + 5;
+velocityY -= gravity;
+player.position.y += velocityY;
+
+if(player.position.y <= 1){
+player.position.y = 1;
+velocityY = 0;
+canJump = true;
+}
+
+/* CAMERA FOLLOW */
+camera.position.x += (player.position.x - camera.position.x) * 0.05;
+camera.position.z += (player.position.z + 8 - camera.position.z) * 0.05;
 camera.lookAt(player.position);
 
+/* RENDER */
 renderer.render(scene,camera);
 }
+
+animate();
+
+/* RESIZE */
+window.addEventListener("resize",()=>{
+camera.aspect = window.innerWidth/window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth,window.innerHeight);
+});
 
 </script>
 
