@@ -2,63 +2,44 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Billions Game Engine GOD MODE</title>
+<title>Billions Engine X</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
 margin:0;
+background:#0a0f1a;
 font-family:Arial;
-background:radial-gradient(circle,#0f2027,#000);
 color:white;
+overflow:hidden;
 }
 
-/* HEADER */
 header{
-padding:12px;
+padding:10px;
 text-align:center;
 color:#00ffd5;
-font-size:22px;
 font-weight:bold;
 }
 
-/* MENU */
-#menu{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-gap:8px;
-padding:10px;
+#ui{
+position:absolute;
+top:50px;
+left:10px;
+z-index:10;
 }
 
-.btn{
-padding:10px;
-border:1px solid #00ffd5;
-border-radius:10px;
-text-align:center;
+button{
+padding:8px;
+margin:3px;
+border:none;
+border-radius:6px;
 cursor:pointer;
-background:rgba(255,255,255,0.05);
-transition:0.3s;
-}
-.btn:hover{
 background:#00ffd5;
 color:black;
-transform:scale(1.05);
-}
-
-/* GAME AREA */
-#game{
-margin:10px;
-border:2px solid #00ffd5;
-border-radius:10px;
-height:500px;
-position:relative;
-overflow:hidden;
-background:rgba(255,255,255,0.03);
 }
 
 canvas{
-width:100%;
-height:100%;
+background:radial-gradient(circle,#111,#000);
 display:block;
 }
 </style>
@@ -66,312 +47,185 @@ display:block;
 
 <body>
 
-<header>👑 BILLIONS GAME ENGINE — GOD MODE</header>
+<header>👑 BILLIONS ENGINE X — INDUSTRY LEVEL CORE</header>
 
-<div id="menu"></div>
+<div id="ui">
+<button onclick="Engine.loadScene('menu')">Menu</button>
+<button onclick="Engine.loadScene('platform')">Platform</button>
+<button onclick="Engine.loadScene('shooter')">Shooter</button>
+<button onclick="Engine.loadScene('physics')">Physics Demo</button>
+</div>
 
-<div id="game"></div>
+<canvas id="c"></canvas>
 
 <script>
-const menu=document.getElementById("menu");
-const game=document.getElementById("game");
 
-let canvas=document.createElement("canvas");
-let ctx=canvas.getContext("2d");
-game.appendChild(canvas);
+/* =========================
+   ENGINE CORE
+========================= */
+
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
 
 function resize(){
-canvas.width=game.clientWidth;
-canvas.height=game.clientHeight;
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 }
 window.onresize=resize;
 resize();
 
-/* ======================
-   ENGINE CORE
-====================== */
-let currentGame=null;
-let keys={};
+/* =========================
+   INPUT SYSTEM
+========================= */
+const Input={
+keys:{}
+};
 
-document.addEventListener("keydown",e=>keys[e.key]=true);
-document.addEventListener("keyup",e=>keys[e.key]=false);
+window.addEventListener("keydown",e=>Input.keys[e.key]=true);
+window.addEventListener("keyup",e=>Input.keys[e.key]=false);
 
-/* ======================
-   GAMES LIST
-====================== */
-const games=[
-"Snake",
-"Pong",
-"Flappy",
-"Breakout",
-"Shooter"
-];
-
-/* MENU */
-games.forEach((g,i)=>{
-let b=document.createElement("div");
-b.className="btn";
-b.innerText=g;
-b.onclick=()=>loadGame(i);
-menu.appendChild(b);
-});
-
-/* RESET ENGINE */
-function reset(){
-currentGame=null;
+/* =========================
+   ENTITY SYSTEM
+========================= */
+class Entity{
+constructor(x,y){
+this.x=x;
+this.y=y;
+this.vx=0;
+this.vy=0;
+this.w=20;
+this.h=20;
+this.gravity=false;
 }
 
-/* ======================
-   GAME 1 - SNAKE
-====================== */
-function snakeGame(){
-let snake=[{x:10,y:10}];
-let dir={x:1,y:0};
-let food={x:15,y:15};
-let size=20;
-let score=0;
+update(){}
 
-function loop(){
-ctx.fillStyle="black";
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
-if(keys["ArrowUp"])dir={x:0,y:-1};
-if(keys["ArrowDown"])dir={x:0,y:1};
-if(keys["ArrowLeft"])dir={x:-1,y:0};
-if(keys["ArrowRight"])dir={x:1,y:0};
-
-let head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
-snake.unshift(head);
-
-if(head.x==food.x && head.y==food.y){
-score++;
-food={x:Math.floor(Math.random()*20),y:Math.floor(Math.random()*20)};
-}else{
-snake.pop();
-}
-
-/* draw food */
-ctx.fillStyle="red";
-ctx.fillRect(food.x*size,food.y*size,size,size);
-
-/* draw snake */
-ctx.fillStyle="#00ffd5";
-snake.forEach(s=>{
-ctx.fillRect(s.x*size,s.y*size,size-2,size-2);
-});
-
-/* score */
+draw(){
 ctx.fillStyle="white";
-ctx.fillText("Score: "+score,10,20);
-
-if(currentGame=="snake")
-requestAnimationFrame(loop);
+ctx.fillRect(this.x,this.y,this.w,this.h);
 }
-loop();
 }
 
-/* ======================
-   GAME 2 - PONG
-====================== */
-function pongGame(){
-let ball={x:200,y:200,vx:3,vy:3};
-let player=150;
-let ai=150;
+/* =========================
+   ENGINE CORE LOOP
+========================= */
+const Engine={
+currentScene:null,
 
-function loop(){
+entities:[],
+
+loadScene(name){
+this.entities=[];
+this.currentScene=Scenes[name];
+this.currentScene.init();
+},
+
+update(){
+if(this.currentScene)this.currentScene.update();
+
+this.entities.forEach(e=>{
+e.update();
+e.x+=e.vx;
+e.y+=e.vy;
+
+if(e.gravity)e.vy+=0.3;
+});
+},
+
+render(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-ball.x+=ball.vx;
-ball.y+=ball.vy;
-
-/* bounce */
-if(ball.y<0||ball.y>canvas.height)ball.vy*=-1;
-
-/* paddle AI */
-ai+=(ball.y-ai)*0.05;
-
-/* collision */
-if(ball.x<20&&ball.y>player&&ball.y<player+80)ball.vx*=-1;
-if(ball.x>canvas.width-20&&ball.y>ai&&ball.y<ai+80)ball.vx*=-1;
-
-/* player control */
-if(keys["w"])player-=5;
-if(keys["s"])player+=5;
-
-/* draw */
-ctx.fillStyle="white";
-ctx.fillRect(10,player,10,80);
-ctx.fillRect(canvas.width-20,ai,10,80);
-
-ctx.beginPath();
-ctx.arc(ball.x,ball.y,8,0,Math.PI*2);
-ctx.fill();
-
-/* loop */
-if(currentGame=="pong")
-requestAnimationFrame(loop);
+this.entities.forEach(e=>e.draw());
 }
-loop();
+};
+
+/* =========================
+   SCENES
+========================= */
+
+const Scenes={};
+
+/* ===== MENU SCENE ===== */
+Scenes.menu={
+init(){
+let e=new Entity(100,100);
+Engine.entities.push(e);
+},
+update(){
 }
+};
 
-/* ======================
-   GAME 3 - FLAPPY
-====================== */
-function flappyGame(){
-let bird={x:50,y:200,vy:0};
-let gravity=0.5;
-let pipes=[{x:300,h:100}];
-let score=0;
+/* ===== PLATFORM GAME ===== */
+Scenes.platform={
+init(){
+this.player=new Entity(100,100);
+this.player.gravity=true;
+Engine.entities.push(this.player);
+},
+update(){
+if(Input.keys["ArrowRight"])this.player.vx=3;
+else if(Input.keys["ArrowLeft"])this.player.vx=-3;
+else this.player.vx=0;
 
-document.onkeydown=()=>bird.vy=-6;
+if(Input.keys[" "])this.player.vy=-8;
 
-function loop(){
-ctx.fillStyle="black";
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
-bird.vy+=gravity;
-bird.y+=bird.vy;
-
-/* pipes */
-pipes.forEach(p=>{
-p.x-=3;
-
-ctx.fillStyle="green";
-ctx.fillRect(p.x,0,40,p.h);
-ctx.fillRect(p.x,p.h+120,40,400);
-
-/* collision */
-if(bird.x>p.x&&bird.x<p.x+40){
-if(bird.y<p.h||bird.y>p.h+120){
-score=0;
-bird.y=200;
+/* ground */
+if(this.player.y>500){
+this.player.y=500;
+this.player.vy=0;
 }
 }
-});
+};
 
-if(pipes[0].x<-50){
-pipes.shift();
-pipes.push({x:300,h:Math.random()*200});
-score++;
+/* ===== SHOOTER ===== */
+Scenes.shooter={
+init(){
+this.player=new Entity(200,400);
+Engine.entities.push(this.player);
+
+this.bullets=[];
+},
+update(){
+if(Input.keys["ArrowLeft"])this.player.x-=4;
+if(Input.keys["ArrowRight"])this.player.x+=4;
+
+if(Input.keys[" "]){
+this.bullets.push(new Entity(this.player.x,this.player.y));
 }
-
-/* bird */
-ctx.fillStyle="yellow";
-ctx.fillRect(bird.x,bird.y,20,20);
-
-/* score */
-ctx.fillStyle="white";
-ctx.fillText("Score:"+score,10,20);
-
-if(currentGame=="flappy")
-requestAnimationFrame(loop);
-}
-loop();
-}
-
-/* ======================
-   GAME 4 - BREAKOUT
-====================== */
-function breakoutGame(){
-let paddle=200;
-let ball={x:200,y:200,vx:3,vy:3};
-let bricks=[];
-
-for(let i=0;i<5;i++){
-for(let j=0;j<6;j++){
-bricks.push({x:i*60,y:j*30,alive:true});
-}
-}
-
-function loop(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-if(keys["ArrowLeft"])paddle-=5;
-if(keys["ArrowRight"])paddle+=5;
-
-ball.x+=ball.vx;
-ball.y+=ball.vy;
-
-/* bounce */
-if(ball.x<0||ball.x>canvas.width)ball.vx*=-1;
-if(ball.y<0)ball.vy*=-1;
-
-/* paddle */
-if(ball.y>paddle&&ball.x>paddle&&ball.x<paddle+80)ball.vy*=-1;
-
-/* bricks */
-bricks.forEach(b=>{
-if(b.alive){
-ctx.fillStyle="orange";
-ctx.fillRect(b.x,b.y,50,20);
-
-if(ball.x>b.x&&ball.x<b.x+50&&ball.y>b.y){
-b.alive=false;
-ball.vy*=-1;
-}
-}
-});
-
-ctx.fillStyle="white";
-ctx.fillRect(paddle,canvas.height-20,80,10);
-
-ctx.beginPath();
-ctx.arc(ball.x,ball.y,8,0,Math.PI*2);
-ctx.fill();
-
-if(currentGame=="breakout")
-requestAnimationFrame(loop);
-}
-loop();
-}
-
-/* ======================
-   GAME 5 - SHOOTER
-====================== */
-function shooterGame(){
-let player={x:200};
-let bullets=[];
-
-document.onkeydown=(e)=>{
-if(e.key==" ")bullets.push({x:player.x,y:400});
-}
-
-function loop(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-/* player */
-ctx.fillStyle="cyan";
-ctx.fillRect(player.x,420,30,30);
 
 /* bullets */
-bullets.forEach(b=>{
-b.y-=5;
-ctx.fillStyle="red";
-ctx.fillRect(b.x,b.y,5,10);
+this.bullets.forEach(b=>{
+b.vy=-6;
+Engine.entities.push(b);
 });
+}
+};
 
-/* move */
-if(keys["ArrowLeft"])player.x-=5;
-if(keys["ArrowRight"])player.x+=5;
+/* ===== PHYSICS DEMO ===== */
+Scenes.physics={
+init(){
+for(let i=0;i<10;i++){
+let e=new Entity(100+i*30,100);
+e.gravity=true;
+Engine.entities.push(e);
+}
+},
+update(){
+}
+};
 
-if(currentGame=="shooter")
+/* =========================
+   LOOP
+========================= */
+function loop(){
+Engine.update();
+Engine.render();
 requestAnimationFrame(loop);
 }
+
+Engine.loadScene("menu");
 loop();
-}
 
-/* ======================
-   LOADER
-====================== */
-function loadGame(id){
-reset();
-
-if(id==0){currentGame="snake";snakeGame();}
-if(id==1){currentGame="pong";pongGame();}
-if(id==2){currentGame="flappy";flappyGame();}
-if(id==3){currentGame="breakout";breakoutGame();}
-if(id==4){currentGame="shooter";shooterGame();}
-}
 </script>
 
 </body>
